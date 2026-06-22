@@ -107,9 +107,21 @@ jobs:
           step: compile
 
       - name: Print cibuildgem outputs
+        if: always()
         run: |
           cd gems/json
           echo "Gem files:"
           find pkg -name "*.gem" -print || true
           echo "Compiled files:"
           find tmp -type f \( -name "*.so" -o -name "*.bundle" -o -name "*.dll" \) -print || true
+
+      - name: Upload cibuildgem outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cibuildgem-debug-results
+          path: |
+            gems/json/pkg/*.gem
+            gems/json/tmp/**/*.so
+            gems/json/tmp/**/*.bundle
+          if-no-files-found: ignore
