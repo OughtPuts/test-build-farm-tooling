@@ -71,3 +71,24 @@ jobs:
           path: |
             built/build_binary/*.gem
             logs/*.log
+
+  cibuildgem:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+
+      - name: Print environment
+        run: |
+          ruby -v
+          gem -v
+          gem env
+
+      - name: Install cibuildgem
+        run: gem install cibuildgem
+
+      - name: Print cibuildgem help
+        run: cibuildgem help
