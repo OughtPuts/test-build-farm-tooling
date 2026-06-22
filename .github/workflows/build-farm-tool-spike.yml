@@ -55,9 +55,12 @@ jobs:
             gem install "$file" --install-dir verify --no-document
           done
 
-          ruby -Iverify/gems/json-*/lib -rjson -e 'puts "json ok"'
-          ruby -Iverify/gems/nokogiri-*/lib -rnokogiri -e 'puts "nokogiri ok"'
-          ruby -Iverify/gems/eventmachine-*/lib -reventmachine -e 'puts "eventmachine ok"'
-          ruby -Iverify/gems/unicorn-*/lib -runicorn -e 'puts "unicorn ok"'
-          ruby -Iverify/gems/ffi-*/lib -rffi -e 'puts "ffi ok"'
+          export GEM_HOME="$PWD/verify"
+          export GEM_PATH="$PWD/verify"
+
+          ruby -rjson -e 'puts "json ok"'
+          ruby -rnokogiri -e 'puts "nokogiri ok"'
+          ruby -reventmachine -e 'puts "eventmachine ok"'
+          ruby -runicorn -e 'puts "unicorn ok"'
+          ruby -rffi -e 'puts "ffi ok"'
 
