@@ -21,4 +21,14 @@ jobs:
       
       - name: Install rubygems-build-binary
         run: gem install rubygems-build-binary
-        
+
+      - name: Fetch source gems
+        run: |
+          mkdir -p source
+          cd source
+          gem fetch json
+          gem fetch nokogiri
+          gem fetch eventmachine
+          gem fetch unicorn
+          gem fetch ffi
+          ls -lh
