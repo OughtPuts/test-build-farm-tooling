@@ -100,6 +100,11 @@ jobs:
           cd gems/json
           ls -lh
           ls *.gemspec
+      
+      - name: Install json repo dependencies
+        run: |
+          cd gems/json
+          bundle install
 
       - name: Build json with cibuildgem
         run: |
