@@ -1,0 +1,20 @@
+name: Build farm tool spike
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rubygems-build-binary:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+
+      - name: Print environment
+        run: |
+          ruby -v
+          gem -v
+          gem env
