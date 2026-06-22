@@ -88,57 +88,23 @@ jobs:
           gem -v
           gem env
 
-      - name: Install cibuildgem
-        run: gem install cibuildgem
-
-      - name: Print cibuildgem help
-        run: cibuildgem help
-      
       - name: Clone json source
         run: |
           git clone https://github.com/ruby/json.git gems/json
           cd gems/json
           ls -lh
           ls *.gemspec
-      
-      - name: Install json repo dependencies
-        run: |
-          cd gems/json
-          bundle install
 
-      - name: Build json with cibuildgem
-        run: |
-          cd gems/json
-          cibuildgem package
-          echo "All gem files:"
-          find . -name "*.gem" -print
-
-          echo "Gem platforms:"
-          for file in $(find . -name "*.gem" -print); do
-            echo "$file"
-            gem specification "$file" platform
-          done
-
-          echo "Compiled files inside produced gems:"
-          rm -rf /tmp/cibuildgem-unpack
-          mkdir -p /tmp/cibuildgem-unpack
-
-          for file in $(find . -name "*.gem" -print); do
-            echo "$file"
-            rm -rf /tmp/cibuildgem-unpack/*
-            gem unpack "$file" --target /tmp/cibuildgem-unpack
-            compiled_files="$(find /tmp/cibuildgem-unpack -type f \( -name "*.so" -o -name "*.bundle" -o -name "*.dll" \) -print)"
-
-            if [ -n "$compiled_files" ]; then
-              printf '%s\n' "$compiled_files"
-            else
-              echo "No compiled files found"
-            fi
-          done
-
-      - name: Upload cibuildgem results
-        uses: actions/upload-artifact@v4
+      - name: Run cibuildgem
+        uses: shopify/cibuildgem/.github/actions/cibuildgem@main
         with:
-          name: cibuildgem-results
-          path: |
-            gems/json/pkg/*.gem
+          working-directory: gems/json
+          step: compile
+
+      - name: Print cibuildgem outputs
+        run: |
+          cd gems/json
+          echo "Gem files:"
+          find pkg -name "*.gem" -print || true
+          echo "Compiled files:"
+          find tmp -type f \( -name "*.so" -o -name "*.bundle" -o -name "*.dll" \) -print || true
