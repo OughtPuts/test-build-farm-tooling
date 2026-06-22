@@ -118,3 +118,27 @@ jobs:
             echo "$file"
             gem specification "$file" platform
           done
+
+          echo "Compiled files inside produced gems:"
+          rm -rf /tmp/cibuildgem-unpack
+          mkdir -p /tmp/cibuildgem-unpack
+
+          for file in $(find . -name "*.gem" -print); do
+            echo "$file"
+            rm -rf /tmp/cibuildgem-unpack/*
+            gem unpack "$file" --target /tmp/cibuildgem-unpack
+            compiled_files="$(find /tmp/cibuildgem-unpack -type f \( -name "*.so" -o -name "*.bundle" -o -name "*.dll" \) -print)"
+
+            if [ -n "$compiled_files" ]; then
+              printf '%s\n' "$compiled_files"
+            else
+              echo "No compiled files found"
+            fi
+          done
+
+      - name: Upload cibuildgem results
+        uses: actions/upload-artifact@v4
+        with:
+          name: cibuildgem-results
+          path: |
+            gems/json/pkg/*.gem
