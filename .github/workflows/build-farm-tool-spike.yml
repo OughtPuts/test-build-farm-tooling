@@ -26,11 +26,11 @@ jobs:
         run: |
           mkdir -p source
           cd source
-          gem fetch json
-          gem fetch nokogiri
-          gem fetch eventmachine
-          gem fetch unicorn
-          gem fetch ffi
+          gem fetch json --platform ruby
+          gem fetch nokogiri --platform ruby
+          gem fetch eventmachine --platform ruby
+          gem fetch unicorn --platform ruby
+          gem fetch ffi --platform ruby
           ls -lh
 
       - name: Build binary gems
