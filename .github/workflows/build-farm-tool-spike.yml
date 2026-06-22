@@ -100,3 +100,9 @@ jobs:
           cd gems/json
           ls -lh
           ls *.gemspec
+
+      - name: Build json with cibuildgem
+        run: |
+          cd gems/json
+          cibuildgem package
+          find . -name "*.gem" -print
