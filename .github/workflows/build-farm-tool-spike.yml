@@ -110,4 +110,11 @@ jobs:
         run: |
           cd gems/json
           cibuildgem package
+          echo "All gem files:"
           find . -name "*.gem" -print
+
+          echo "Gem platforms:"
+          for file in $(find . -name "*.gem" -print); do
+            echo "$file"
+            gem specification "$file" platform
+          done
