@@ -32,3 +32,17 @@ jobs:
           gem fetch unicorn
           gem fetch ffi
           ls -lh
+
+      - name: Build binary gems
+        run: |
+          mkdir -p built/build_binary logs
+          cd built/build_binary
+
+          for file in ../../source/*.gem; do
+            gem_name="$(basename "$file" .gem)"
+            echo "Building $gem_name"
+            gem build_binary "$file" 2>&1 | tee "../../logs/build_binary-${gem_name}.log"
+          done
+
+          ls -lh
+
