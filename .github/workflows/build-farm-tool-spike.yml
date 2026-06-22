@@ -5,6 +5,7 @@ on:
 
 jobs:
   rubygems-build-binary:
+    if: false
     runs-on: ubuntu-24.04
 
     steps:
@@ -92,3 +93,10 @@ jobs:
 
       - name: Print cibuildgem help
         run: cibuildgem help
+      
+      - name: Clone json source
+        run: |
+          git clone https://github.com/ruby/json.git gems/json
+          cd gems/json
+          ls -lh
+          ls *.gemspec
