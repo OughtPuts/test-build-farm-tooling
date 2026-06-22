@@ -63,4 +63,11 @@ jobs:
           ruby -reventmachine -e 'puts "eventmachine ok"'
           ruby -runicorn -e 'puts "unicorn ok"'
           ruby -rffi -e 'puts "ffi ok"'
-
+      
+      - name: Upload rubygems-build-binary results
+        uses: actions/upload-artifact@v4
+        with:
+          name: rubygems-build-binary-results
+          path: |
+            built/build_binary/*.gem
+            logs/*.log
