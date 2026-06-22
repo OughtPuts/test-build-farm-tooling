@@ -18,3 +18,7 @@ jobs:
           ruby -v
           gem -v
           gem env
+      
+      - name: Install rubygems-build-binary
+        run: gem install rubygems-build-binary
+        
