@@ -95,6 +95,11 @@ jobs:
           ls -lh
           ls *.gemspec
 
+      - name: Install json repo dependencies
+        run: |
+          cd gems/json
+          bundle install
+
       - name: Run cibuildgem
         uses: shopify/cibuildgem/.github/actions/cibuildgem@main
         with:
