@@ -88,28 +88,28 @@ jobs:
           gem -v
           gem env
 
-      - name: Clone amatch source
+      - name: Clone eventmachine source
         run: |
-          git clone https://github.com/flori/amatch.git gems/amatch
-          cd gems/amatch
+          git clone https://github.com/eventmachine/eventmachine.git gems/eventmachine
+          cd gems/eventmachine
           ls -lh
           ls *.gemspec
 
-      - name: Install amatch repo dependencies
+      - name: Install eventmachine repo dependencies
         run: |
-          cd gems/amatch
+          cd gems/eventmachine
           bundle install
 
       - name: Run cibuildgem
         uses: shopify/cibuildgem/.github/actions/cibuildgem@main
         with:
-          working-directory: gems/amatch
+          working-directory: gems/eventmachine
           step: compile
 
       - name: Print cibuildgem outputs
         if: always()
         run: |
-          cd gems/amatch
+          cd gems/eventmachine
           echo "Gem files:"
           find pkg -name "*.gem" -print || true
           echo "Compiled files:"
@@ -121,7 +121,7 @@ jobs:
         with:
           name: cibuildgem-debug-results
           path: |
-            gems/amatch/pkg/*.gem
-            gems/amatch/tmp/**/*.so
-            gems/amatch/tmp/**/*.bundle
+            gems/eventmachine/pkg/*.gem
+            gems/eventmachine/tmp/**/*.so
+            gems/eventmachine/tmp/**/*.bundle
           if-no-files-found: ignore
