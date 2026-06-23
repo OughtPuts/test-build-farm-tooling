@@ -88,28 +88,31 @@ jobs:
           gem -v
           gem env
 
-      - name: Clone json source
+      - name: Clone rubydex source
         run: |
-          git clone https://github.com/ruby/json.git gems/json
-          cd gems/json
+          git clone https://github.com/Shopify/rubydex.git gems/rubydex
+          cd gems/rubydex
           ls -lh
           ls *.gemspec
 
-      - name: Install json repo dependencies
+      - name: Install rubydex repo dependencies
         run: |
-          cd gems/json
+          cd gems/rubydex
           bundle install
+
+      - name: Install cargo-about
+        run: cargo install cargo-about --features cli
 
       - name: Run cibuildgem
         uses: shopify/cibuildgem/.github/actions/cibuildgem@main
         with:
-          working-directory: gems/json
+          working-directory: gems/rubydex
           step: compile
 
       - name: Print cibuildgem outputs
         if: always()
         run: |
-          cd gems/json
+          cd gems/rubydex
           echo "Gem files:"
           find pkg -name "*.gem" -print || true
           echo "Compiled files:"
@@ -121,7 +124,7 @@ jobs:
         with:
           name: cibuildgem-debug-results
           path: |
-            gems/json/pkg/*.gem
-            gems/json/tmp/**/*.so
-            gems/json/tmp/**/*.bundle
+            gems/rubydex/pkg/*.gem
+            gems/rubydex/tmp/**/*.so
+            gems/rubydex/tmp/**/*.bundle
           if-no-files-found: ignore
