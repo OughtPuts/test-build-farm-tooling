@@ -157,3 +157,36 @@ jobs:
           pg_gem="$(find built-gems -name 'pg-*-x86_64-linux.gem' | head -n 1)"
           gem install "$pg_gem" --local --no-document
           ruby -rpg -e 'puts "pg ok"'
+
+  repro-source-missing-system-lib:
+    runs-on: ubuntu-24.04
+    container: rubylang/ruby:4.0.0-noble
+
+    steps:
+      - name: Check environment and existing shared libraries
+        run: |
+          ruby -v
+          gem -v
+          ldconfig -p | grep -E 'libpq|libssl|libcrypto|libz' || true
+
+      - name: Install compiler dependencies without libpq
+        run: |
+          apt-get update
+          apt-get install -y gcc make pkg-config
+
+      - name: Fetch source pg gem
+        run: |
+          mkdir -p source-pg
+          cd source-pg
+          gem fetch pg --platform ruby
+          ls -lh
+
+      - name: Inspect source pg gemspec
+        run: |
+          pg_gem="$(find source-pg -name 'pg-*.gem' | head -n 1)"
+          gem specification "$pg_gem" platform extensions requirements
+
+      - name: Install source pg without libpq
+        run: |
+          pg_gem="$(find source-pg -name 'pg-*.gem' | head -n 1)"
+          gem install "$pg_gem" --local --no-document
