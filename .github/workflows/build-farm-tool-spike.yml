@@ -18,7 +18,7 @@ jobs:
       - name: Install build dependencies
         run: |
           apt-get update
-          apt-get install -y clang cmake curl g++ gcc libssl-dev llvm make meson ninja-build pkg-config rustup zlib1g-dev
+          apt-get install -y clang cmake curl g++ gcc libpq-dev libssl-dev llvm make meson ninja-build pkg-config rustup zlib1g-dev
       
       - name: Install rubygems-build-binary
         run: gem install rubygems-build-binary
@@ -27,11 +27,7 @@ jobs:
         run: |
           mkdir -p source
           cd source
-          gem fetch json --platform ruby
-          gem fetch nokogiri --platform ruby
-          gem fetch eventmachine --platform ruby
-          gem fetch unicorn --platform ruby
-          gem fetch ffi --platform ruby
+          gem fetch pg --platform ruby
           ls -lh
 
       - name: Build binary gems
@@ -59,7 +55,7 @@ jobs:
           export GEM_HOME="$PWD/verify"
           export GEM_PATH="$PWD/verify"
 
-          ruby -rffi -e 'puts "ffi ok"'
+          ruby -rpg -e 'puts "pg ok"'
       
       - name: Upload rubygems-build-binary results
         uses: actions/upload-artifact@v4
@@ -133,7 +129,7 @@ jobs:
         run: |
           ruby -v
           gem -v
-          ldconfig -p | grep -E 'libffi|libssl|libcrypto|libz' || true
+          ldconfig -p | grep -E 'libpq|libffi|libssl|libcrypto|libz' || true
       
       - name: Download built gems
         uses: actions/download-artifact@v4
@@ -145,19 +141,19 @@ jobs:
         run: |
           find built-gems -type f -print
       
-      - name: Inspect ffi binary dependencies
+      - name: Inspect pg binary dependencies
         run: |
-          ffi_gem="$(find built-gems -name 'ffi-*-x86_64-linux.gem' | head -n 1)"
-          echo "Inspecting $ffi_gem"
-          mkdir -p unpacked-ffi
-          tar -xf "$ffi_gem" -C unpacked-ffi data.tar.gz
-          tar -xzf unpacked-ffi/data.tar.gz -C unpacked-ffi
-          find unpacked-ffi -name "*.so" -print
-          ffi_so="$(find unpacked-ffi -name 'ffi_c.so' | head -n 1)"
-          ldd "$ffi_so" || true
+          pg_gem="$(find built-gems -name 'pg-*-x86_64-linux.gem' | head -n 1)"
+          echo "Inspecting $pg_gem"
+          mkdir -p unpacked-pg
+          tar -xf "$pg_gem" -C unpacked-pg data.tar.gz
+          tar -xzf unpacked-pg/data.tar.gz -C unpacked-pg
+          find unpacked-pg -name "*.so" -print
+          pg_so="$(find unpacked-pg -name 'pg_ext.so' | head -n 1)"
+          ldd "$pg_so" || true
 
-      - name: Install and require ffi
+      - name: Install and require pg
         run: |
-          ffi_gem="$(find built-gems -name 'ffi-*-x86_64-linux.gem' | head -n 1)"
-          gem install "$ffi_gem" --local --no-document
-          ruby -rffi -e 'puts "ffi ok"'
+          pg_gem="$(find built-gems -name 'pg-*-x86_64-linux.gem' | head -n 1)"
+          gem install "$pg_gem" --local --no-document
+          ruby -rpg -e 'puts "pg ok"'
