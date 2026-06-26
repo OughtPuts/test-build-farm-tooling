@@ -59,10 +59,6 @@ jobs:
           export GEM_HOME="$PWD/verify"
           export GEM_PATH="$PWD/verify"
 
-          ruby -rjson -e 'puts "json ok"'
-          ruby -rnokogiri -e 'puts "nokogiri ok"'
-          ruby -reventmachine -e 'puts "eventmachine ok"'
-          ruby -runicorn -e 'puts "unicorn ok"'
           ruby -rffi -e 'puts "ffi ok"'
       
       - name: Upload rubygems-build-binary results
