@@ -190,3 +190,93 @@ jobs:
         run: |
           pg_gem="$(find source-pg -name 'pg-*.gem' | head -n 1)"
           gem install "$pg_gem" --local --no-document
+
+  rubygems-build-binary-with-system-requirements:
+    runs-on: ubuntu-24.04
+    container: rubylang/ruby:4.0.0-noble
+
+    steps:
+      - name: Print environment
+        run: |
+          ruby -v
+          gem -v
+          gem env
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y clang cmake curl g++ gcc libpq-dev libssl-dev llvm make meson ninja-build pkg-config rustup zlib1g-dev
+
+      - name: Install rubygems-build-binary
+        run: gem install rubygems-build-binary
+
+      - name: Fetch source pg gem
+        run: |
+          mkdir -p source-with-requirements
+          cd source-with-requirements
+          gem fetch pg --platform ruby
+          ls -lh
+
+      - name: Build pg binary gem with system requirements metadata
+        run: |
+          mkdir -p built/build_binary_with_requirements logs
+          cd built/build_binary_with_requirements
+
+          pg_gem="$(find ../../source-with-requirements -name 'pg-*.gem' | head -n 1)"
+          gem build_binary \
+            --add-requirement="system: libpq: ubuntu: libpq-dev" \
+            "$pg_gem" \
+            2>&1 | tee "../../logs/build_binary_with_requirements-pg.log"
+
+          ls -lh
+
+      - name: Inspect built pg gem requirements
+        run: |
+          pg_gem="$(find built/build_binary_with_requirements -name 'pg-*-x86_64-linux.gem' | head -n 1)"
+          gem specification "$pg_gem" requirements
+
+      - name: Upload pg binary with system requirements
+        uses: actions/upload-artifact@v4
+        with:
+          name: pg-binary-with-system-requirements
+          path: |
+            built/build_binary_with_requirements/*.gem
+            logs/*.log
+
+  repro-binary-with-requirements-system:
+    runs-on: ubuntu-24.04
+    container: rubylang/ruby:4.0.0-noble
+    needs: rubygems-build-binary-with-system-requirements
+
+    steps:
+      - name: Check environment and existing shared libraries
+        run: |
+          ruby -v
+          gem -v
+          ldconfig -p | grep -E 'libpq|libssl|libcrypto|libz' || true
+
+      - name: Install rubygems-requirements-system
+        run: |
+          apt-get update
+          gem install rubygems-requirements-system
+
+      - name: Download pg binary with system requirements
+        uses: actions/download-artifact@v4
+        with:
+          name: pg-binary-with-system-requirements
+          path: built-gems-with-requirements
+
+      - name: Show downloaded files
+        run: |
+          find built-gems-with-requirements -type f -print
+
+      - name: Inspect pg gem requirements
+        run: |
+          pg_gem="$(find built-gems-with-requirements -name 'pg-*-x86_64-linux.gem' | head -n 1)"
+          gem specification "$pg_gem" requirements
+
+      - name: Install and require pg with rubygems-requirements-system
+        run: |
+          pg_gem="$(find built-gems-with-requirements -name 'pg-*-x86_64-linux.gem' | head -n 1)"
+          gem install "$pg_gem" --local --no-document
+          ruby -rpg -e 'puts "pg ok with system requirements metadata"'
