@@ -5,20 +5,20 @@ on:
 
 jobs:
   rubygems-build-binary:
-    if: false
     runs-on: ubuntu-24.04
+    container: rubylang/ruby:4.0.0-noble
 
     steps:
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.4"
-
       - name: Print environment
         run: |
           ruby -v
           gem -v
           gem env
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y clang cmake curl g++ gcc libssl-dev llvm make meson ninja-build pkg-config rustup zlib1g-dev
       
       - name: Install rubygems-build-binary
         run: gem install rubygems-build-binary
@@ -74,6 +74,7 @@ jobs:
             logs/*.log
 
   cibuildgem:
+    if: false
     runs-on: ubuntu-24.04
 
     steps:
@@ -125,3 +126,42 @@ jobs:
             gems/eventmachine/tmp/**/*.so
             gems/eventmachine/tmp/**/*.bundle
           if-no-files-found: ignore
+
+  repro-missing-system-lib:
+    runs-on: ubuntu-24.04
+    container: rubylang/ruby:4.0.0-noble
+    needs: rubygems-build-binary
+
+    steps:
+      - name: Check environment and existing shared libraries
+        run: |
+          ruby -v
+          gem -v
+          ldconfig -p | grep -E 'libffi|libssl|libcrypto|libz' || true
+      
+      - name: Download built gems
+        uses: actions/download-artifact@v4
+        with:
+          name: rubygems-build-binary-results
+          path: built-gems
+      
+      - name: Show downloaded files
+        run: |
+          find built-gems -type f -print
+      
+      - name: Inspect ffi binary dependencies
+        run: |
+          ffi_gem="$(find built-gems -name 'ffi-*-x86_64-linux.gem' | head -n 1)"
+          echo "Inspecting $ffi_gem"
+          mkdir -p unpacked-ffi
+          tar -xf "$ffi_gem" -C unpacked-ffi data.tar.gz
+          tar -xzf unpacked-ffi/data.tar.gz -C unpacked-ffi
+          find unpacked-ffi -name "*.so" -print
+          ffi_so="$(find unpacked-ffi -name 'ffi_c.so' | head -n 1)"
+          ldd "$ffi_so" || true
+
+      - name: Install and require ffi
+        run: |
+          ffi_gem="$(find built-gems -name 'ffi-*-x86_64-linux.gem' | head -n 1)"
+          gem install "$ffi_gem" --local --no-document
+          ruby -rffi -e 'puts "ffi ok"'
